@@ -1,9 +1,13 @@
 import React from "react";
 import { useState } from "react";
 import Profile from "./profile";
+import ShowInd from "./allIndustry";
+import ShowDis from "./allDistributor";
+import Report from "./report";
 import { useEffect } from "react";
 import axios from "axios";
 import RedlistedInd from "./redlisted";
+import RedlistedDis from "./redlistedDis";
 import { useAuth } from "@/pages/utils/authcontext";
 import { useRouter } from "next/router";
 
@@ -60,11 +64,12 @@ export default function Sidebar(props) {
       <div className="drawer lg:drawer-open">
         <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
         <div className="drawer-content flex flex-col">
-          {/* Page content here */}
-          {/* {selectedIndex === 0 && <Products />} */}
-          {selectedIndex === 5 && <Profile />}
+          {selectedIndex === 0 && <ShowInd />}
           {selectedIndex === 1 && <RedlistedInd />}
-          {/* {selectedIndex === 2 && <Delquant />} */}
+          {selectedIndex === 2 && <ShowDis />}
+          {selectedIndex === 3 && <RedlistedDis />}
+          {selectedIndex === 4 && <Report />}
+          {selectedIndex === 5 && <Profile />}
         </div>
         <div className="drawer-side">
           <label

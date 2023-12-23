@@ -7,12 +7,50 @@ import { useEffect } from "react";
 
 export default function UserNavbar() {
   const router = useRouter();
-  const { logout, user} = useAuth();
+  const [isVerified, setisVerified] = useState(false);
+  const { logout, user, homego } = useAuth();
+  console.log(user);
+  const fetchPro = async () => {
+    if (user == null) {
+      homego();
+    }
+    try {
+      const res = await axios.get(
+        process.env.NEXT_PUBLIC_API_End + "distributor/checkDisVerification/",
+        {
+          withCredentials: true,
+        }
+      );
 
-  // useEffect(() => {
-  //   fetchPro();
-  //   // Run the fetchPro function when the component mounts
-  // }, []);
+      console.log(res);
+
+      //Check if the response status is successful (e.g., HTTP status code 200)
+      if (res.status >= 200 && res.status < 300) {
+        // You may want to store the authentication token or user information
+        // in the state or context
+        // For example:
+        // localStorage.setItem("token", res.data.token);
+        console.log(res);
+        if (res.data.verified == "Yes") setisVerified(true);
+
+        // Redirect the user to the appropriate page
+      }
+    } catch (error) {
+      //console.log(error);
+      console.log(
+        error.hasOwnProperty("response")
+          ? error.response.data.message
+          : error.message
+      );
+      // Handle other errors (e.g., network issues, server errors)
+      // You can show an error message, handle it in some way, etc.
+    }
+  };
+
+  useEffect(() => {
+    fetchPro();
+    // Run the fetchPro function when the component mounts
+  }, []);
 
   const home = () => {
     // Add your sign-in logic here
@@ -39,3 +77,4 @@ export default function UserNavbar() {
     </>
   );
 }
+

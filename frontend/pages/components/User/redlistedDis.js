@@ -3,14 +3,14 @@ import axios from "axios";
 import { useState } from "react";
 import { useEffect } from "react";
 
-export default function RedlistedInd() {
+export default function RedlistedDis() {
   const headerColumns = ["", "Name", "Reason", "Issuer"];
   const [redlisted, setredlisted] = useState({});
   const [isProfile, setIsProfile] = useState(false);
   const fetchPro = async () => {
     try {
       const res = await axios.get(
-        process.env.NEXT_PUBLIC_API_End + "user/checkredlistedindustry/",
+        process.env.NEXT_PUBLIC_API_End + "user/checkredlisteddistributor/",
         { withCredentials: true }
       );
 
