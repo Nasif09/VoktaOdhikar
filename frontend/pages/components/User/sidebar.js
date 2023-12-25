@@ -3,6 +3,7 @@ import { useState } from "react";
 import Profile from "./profile";
 import ShowInd from "./allIndustry";
 import ShowDis from "./allDistributor";
+import Products from "./products";
 import Report from "./report";
 import { useEffect } from "react";
 import axios from "axios";
@@ -70,6 +71,7 @@ export default function Sidebar(props) {
           {selectedIndex === 3 && <RedlistedDis />}
           {selectedIndex === 4 && <Report />}
           {selectedIndex === 5 && <Profile />}
+          {selectedIndex === 6 && <Products />}
         </div>
         <div className="drawer-side">
           <label

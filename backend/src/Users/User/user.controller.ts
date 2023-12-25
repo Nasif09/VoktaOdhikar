@@ -3,7 +3,7 @@ import { ProfileService } from '../../Models/All Profile/profile.service';
 import { VerificationService } from '../../Models/Verification/verification.service';
 import { RedListService } from '../../Models/Red Lists/redlist.service';
 import { ReportandNoticeService } from '../../Models/Report and Notice/reportandnotice.service';
-import { Login, UpdateAdminDTO, UpdateIndsutryPhoneDTO, UpdateIndustryDTO, UpdateNameDTO, UpdatePhoneDTO, UpdateUserDTO, UpdateUserPhoneDTO, UpdatepasswordDTO } from "../../Models/All Profile/profile.dto";
+import { Login, UpdateAdminDTO, UpdateIndsutryPhoneDTO, UpdateIndustryDTO, UpdateNameDTO, UpdatePhoneDTO, UpdateRegionDisDTO, UpdateUserDTO, UpdateUserPhoneDTO, UpdatepasswordDTO } from "../../Models/All Profile/profile.dto";
 import { ProfileDTO} from '../../Models/All Profile/profile.dto';
 import { Request } from 'express';
 import { ReportandNoticeDTO, ReportandNoticeDisDTO, ReportandNoticePostDisDTO, ReportandNoticePostUserDTO, ReportandNoticeUserDTO} from '../../Models/Report and Notice/reportandnotice.dto';
@@ -31,6 +31,7 @@ import { NoProductNameError, productNotExist, productNotaAddedExist} from '../..
 import { RedListDTO } from 'src/Models/Red Lists/redlist.dto';
 import { DisProductDTO, ViewProductPriceDTO } from 'src/Models/Distributor Product/disproduct.dto';
 import { DisProductEntity } from 'src/Models/Distributor Product/disproduct.entity';
+import { DisProductService } from 'src/Models/Distributor Product/disproduct.service';
 
 
 @Controller("users/user")
@@ -44,6 +45,7 @@ import { DisProductEntity } from 'src/Models/Distributor Product/disproduct.enti
     private readonly industryproservice: InProductService,
     private readonly viewreqbydis: RequestProService,
     private readonly reqproductservice: RequestProService,
+    private readonly disProductService: DisProductService,
     private readonly reportandnoticeservice: ReportandNoticeService) {}
 
 
@@ -321,6 +323,7 @@ async deleteUserProfile(@Session() session): Promise<{ message: string } | { suc
   }
 
   @Get('viewmyareaadmin')
+  @UseGuards(SessionGuard)
   async viewMyAreaAdmin(@Session() session): Promise<ProfileEntity[] | { message: string }> {
     try {
       const admins = await this.profileservice.getAreaAdminsByRegion(session.user.region);
@@ -330,6 +333,7 @@ async deleteUserProfile(@Session() session): Promise<{ message: string } | { suc
     }
   }
   @Get('viewmyareadistributor')
+  @UseGuards(SessionGuard)
   async viewMyAreaDistributor(@Session() session): Promise<ProfileEntity[] | { message: string }> {
     try {
       const distributors = await this.profileservice.getAreaDistributorsByRegion(session.user.region);
@@ -413,42 +417,93 @@ async deleteUserProfile(@Session() session): Promise<{ message: string } | { suc
       return { message: 'You are a Unauthorized User' };
     }
   }
+  
+  @Patch('updateregion')
+  @UseGuards(SessionGuard)
+  async updateDisRegion(@Body((new ValidationPipe()))region:UpdateRegionDisDTO, @Session() session): Promise<ProfileEntity | { message: string } | { success: boolean }>{
+    const user = session.user;
 
+  try {
+    if (user.role!=="User") {
+      throw new UnauthorizedException("User is not authorized");
+    } else {
+      const user = session.user;
+      const id = user.uid;
+      const profile = await this.profileservice.UpdateRegionU(region, id);
+      return profile;
+    }
+  } catch (error) {
+    console.error(error);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    if (error) {
+      return { success: false, message: "An unexpected error occurred." };
+    }
   }
+}
+  @Get('getalldistributor')
+  @UseGuards(SessionGuard)
+  async getalldistributorU(@Session() session): Promise<ProfileEntity[] | { message: string } | { success: boolean }>{
+    const user = session.user;
+    if (user) {
+      if (user.role === 'User') {
+        try {
+          const profiles = await this.profileservice.ViewallDistributorNameU();
+        
+          return profiles;
+        
+        } catch (error) {
+          if (error instanceof NoDistributorFound) {
+            return { success: false, message: 'There is no Distributor' };
+          }
+        }
+      }
+    }
+  }
+  @Get('getallindustry')
+  @UseGuards(SessionGuard)
+  async getallindustryU(@Session() session): Promise<ProfileEntity[] | { message: string } | { success: boolean }>{
+    const user = session.user;
+    if (user) {
+      if (user.role === 'User') {
+        try {
+          const profiles = await this.profileservice.ViewallIndustryNameU();
+        
+          return profiles;
+        
+        } catch (error) {
+          if (error instanceof NoDistributorFound) {
+            return { success: false, message: 'There is no Distributor' };
+          }
+        }
+      }
+    }
+  }
+  @Get('viewinventory')
+  @UsePipes(new ValidationPipe())
+  @UseGuards(SessionGuard)
+  async viewinventory(@Session() session): Promise<DisProductEntity[] | { message: string }> {
+    const user = session.user;
+
+    if (user.role === 'User') {
+      try {
+        const products = await this.disProductService.showDistributorProductsForUser();
+
+        if (products) {
+          return products;
+        } else {
+          return { message: 'No product in inventory' };
+        }
+      } catch (error) {
+        if (error instanceof productNotaAddedExist) {
+          return { message: 'No product added' };
+        } else {
+          // Handle other errors if needed
+          return { message: 'An error occurred while fetching the inventory' };
+        }
+      }
+    } else {
+      return { message: 'You are an unauthorized user' };
+    }
+  }
+}
+

@@ -12,7 +12,7 @@ export default function ShowDis() {
   const fetchPro = async () => {
     try {
       const res = await axios.get(
-        process.env.NEXT_PUBLIC_API_End + "user/viewmyareadistributor/",
+        process.env.NEXT_PUBLIC_API_End + "user/getalldistributor/",
         { withCredentials: true }
       );
 
@@ -42,7 +42,7 @@ export default function ShowDis() {
     try {
       const res = await axios.get(
         process.env.NEXT_PUBLIC_API_End +
-          "distributor/viewiDistributorlistReg/",
+          "user/viewmyareadistributor/",
         { withCredentials: true }
       );
 

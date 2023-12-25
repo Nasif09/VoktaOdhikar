@@ -10,6 +10,8 @@ import { productAlreadyExist, productNotaAddedExist, productUpdateFailed } from 
 export class DisProductService{
   constructor(
     @InjectRepository(DisProductEntity) private productRepo: Repository<DisProductEntity>,
+    @InjectRepository(DisProductEntity) private readonly disProductRepo: Repository<DisProductEntity>,
+    
   ){}
 
   
@@ -145,6 +147,21 @@ export class DisProductService{
   
     return product.distributor_price;
   }
+
+  async showDistributorProductsForUser(): Promise<DisProductEntity[] | null> {
+    try {
+      const products = await this.disProductRepo.find();
+
+      if (products.length === 0) {
+        throw new productNotaAddedExist();
+      }
+
+      return products;
+    } catch (error) {
+      throw error; // Handle specific errors here
+    }
+  }
+
   
 
 
