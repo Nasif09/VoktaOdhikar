@@ -6,8 +6,14 @@ import { useEffect } from "react";
 import axios from "axios";
 import RedlistedInd from "./redlisted";
 import Delquant from "./delquantity";
-import { useAuth } from "@/pages/utils/authcontext";
+import { useAuth } from "@/pages/utils/Distributor/authcontext";
 import { useRouter } from "next/router";
+import ShowInd from "./allIndustry";
+import ShowDis from "./allDistributor";
+import ShowAdmin from "./allAdmin";
+import UploadLisence from "./uploadLicense";
+import ReportAdmin from "./report";
+import Dashboard from "./dashboard";
 
 export default function Sidebar(props) {
   const [selectedIndex, setIndex] = useState(-1);
@@ -64,9 +70,15 @@ export default function Sidebar(props) {
         <div className="drawer-content flex flex-col">
           {/* Page content here */}
           {selectedIndex === 0 && <Products />}
-          {selectedIndex === 5 && <Profile />}
+          {selectedIndex === 8 && <Profile />}
           {selectedIndex === 1 && <RedlistedInd />}
           {selectedIndex === 2 && <Delquant />}
+          {selectedIndex === 5 && <ShowInd />}
+          {selectedIndex === 6 && <ShowDis />}
+          {selectedIndex === 7 && <ShowAdmin />}
+          {selectedIndex === 4 && <UploadLisence />}
+          {selectedIndex === 3 && <ReportAdmin />}
+          {selectedIndex === 9 && <Dashboard />}
         </div>
         <div className="drawer-side">
           <label

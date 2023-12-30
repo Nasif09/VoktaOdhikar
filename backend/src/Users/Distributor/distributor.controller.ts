@@ -5,7 +5,7 @@ import { Login, ProfileDTO, ProfileDTODis, UpdateDisDTO, UpdateNameDTO, UpdatePh
 import { ProfileEntity } from 'src/Models/All Profile/profile.entity';
 import { ProfileService } from 'src/Models/All Profile/profile.service';
 import { VerificationDTO, VerificationDisDTO } from 'src/Models/Verification/verification.dto';
-import { NotanyRedlistedIndustry } from 'src/Models/Red Lists/redlist.error';
+import { NotanyRedlistedDributor, NotanyRedlistedIndustry } from 'src/Models/Red Lists/redlist.error';
 import { VerificationService } from 'src/Models/Verification/verification.service';
 import { LicenseNumberExistsError, ProfileAlreadyVerifiedError, ProfileMismatchError, ProfiledoesnotExistsError } from 'src/Models/Verification/verification.errors';
 import { SessionGuardDis } from './SessionDisGaurd.gaurd';
@@ -28,6 +28,7 @@ import { ReportandNoticeDisDTO, ReportandNoticePostDisDTO } from 'src/Models/Rep
 import { ReportandNoticeService } from 'src/Models/Report and Notice/reportandnotice.service';
 import { ReportandNoticeEntity } from 'src/Models/Report and Notice/reportandnotice.entity';
 import { DeleteResult } from 'typeorm';
+import { RedListEntity } from 'src/Models/Red Lists/redlist.entity';
 
 
 @Controller("users/distributor")
@@ -82,7 +83,8 @@ export class DistributorController {
     }
     const result = await this.profileservice.addDistributor(disInfo);
     if(result.message !== "") sendRes.message=result.message;
-    else sendRes.data=result;
+    
+    else {sendRes.data=result;sendRes.success = "True";}
     return sendRes;
   }
 
@@ -90,27 +92,19 @@ export class DistributorController {
   @UseGuards(SessionGuardDis)
   async checkDisVerification(@Session() session): Promise<VerificationEntity| { message: string }> { 
     const user = session.user;
-
+    console.log("lisence",user);
     if(user.role==="Distributor")
     {
       
       try {
         
-        const verified = await this.verificationservice.checkVerificationDis(user.name)
+        const verified = await this.verificationservice.checkVerificationDis(user.uid)
         
-        if(verified){
-          
-          return verified;
-        }
-        else{
-          return { message: 'Your license is not verified'};
-        }
+        return verified;
       }
       catch(error)
       {
-        if (error instanceof ProfiledoesnotExistsError){
-          return { message: 'No verification License given' };
-        }
+        throw error;
       }
   
     }
@@ -209,7 +203,8 @@ export class DistributorController {
     {
       try {
         
-        const products = await this.distributorservice.showDistributorProducts(session.user.name)
+        //const products = await this.distributorservice.showDistributorProducts(session.user.name)
+        const products = await this.distributorservice.showDistributorProducts(user.name);
         console.log(products)
         if(products){
           
@@ -227,7 +222,7 @@ export class DistributorController {
       }
   
     }
-    else
+   // else
     {
       return { message: 'You are a Unauthorized User' };
   
@@ -274,7 +269,7 @@ export class DistributorController {
   @UseGuards(SessionGuardDis)
   async updateProductPrice(@Body() product: updateProductPrice, @Session() session): Promise<DisProductEntity | { message: string }>{
     const user = session.user;
-    
+    console.log(product);
     if(user.role==="Distributor")
     {
       try {
@@ -291,9 +286,7 @@ export class DistributorController {
       }
       catch(error)
       {
-        if (error instanceof productNotaAddedExist){
-          return { message: 'No product found in inventory with such name' };
-        }
+        throw error;
       }
   
     }
@@ -320,25 +313,23 @@ export class DistributorController {
           return productver;
         }
         else{
-          return { message: 'Product not delivered'};
+          throw BadRequestException;
         }
       }
       catch(error)
       {
-        if (error instanceof productNotaAddedExist){
-          return { message: 'No product found in inventory with such name' };
-        }
+        throw error;
       }
   
     }
     else
     {
-      return { message: 'You are a Unauthorized User' };
+      throw UnauthorizedException;
   
     }
   }
 
-  @Put('/updatedisprofile')
+  @Patch('/updatedisprofile')
   @UseGuards(SessionGuardDis)
   async updatedisprofile(@Body((new ValidationPipe()))ProfileInfo:UpdateDisDTO, @Session() session): Promise<ProfileEntity | { message: string } | { success: boolean }>{
   const user = session.user;
@@ -485,6 +476,7 @@ async updateDisPassword(@Body((new ValidationPipe()))password:UpdatepasswordDTO,
     @Session() session
   ) {
     verificationInfo.file_location_name = myfile.filename;
+    verificationInfo.license_number = session.user.license_number;
   
     const user = session.user;
   
@@ -527,6 +519,181 @@ async updateDisPassword(@Body((new ValidationPipe()))password:UpdatepasswordDTO,
       try {
         
         const products = await this.profileservice.ViewallIndustrynameDis(session)
+        console.log(products)
+        if(products){
+          
+          return products;
+        }
+        else{
+          return { message: 'No product in inventory'};
+        }
+      }
+      catch(error)
+      {
+        if (error instanceof productNotaAddedExist){
+          return { message: 'No product added' };
+        }
+      }
+  
+    }
+    else
+    {
+      return { message: 'You are a Unauthorized User' };
+  
+    }
+  }
+
+  @Get("viewiindustrylistReg")
+  @UsePipes(new ValidationPipe())
+  @UseGuards(SessionGuardDis)
+  async viewIndustryListReg(@Session() session): Promise<ProfileEntity[] | { message: string }>{
+    const user = session.user;
+    
+    if(user.role==="Distributor")
+    {
+      try {
+        
+        const products = await this.profileservice.ViewallIndustrynameRegDis(session)
+        console.log(products)
+        if(products){
+          
+          return products;
+        }
+        else{
+          return { message: 'No product in inventory'};
+        }
+      }
+      catch(error)
+      {
+        if (error instanceof productNotaAddedExist){
+          return { message: 'No product added' };
+        }
+      }
+  
+    }
+    else
+    {
+      return { message: 'You are a Unauthorized User' };
+  
+    }
+  }
+
+  @Get("viewiDistributorlist")
+  @UsePipes(new ValidationPipe())
+  @UseGuards(SessionGuardDis)
+  async viewDistributorList(@Session() session): Promise<ProfileEntity[] | { message: string }>{
+    const user = session.user;
+    
+    if(user.role==="Distributor")
+    {
+      try {
+        
+        const products = await this.profileservice.ViewallDistributorNameDis();
+        console.log(products)
+        if(products){
+          
+          return products;
+        }
+        else{
+          return { message: 'No product in inventory'};
+        }
+      }
+      catch(error)
+      {
+        if (error instanceof productNotaAddedExist){
+          return { message: 'No product added' };
+        }
+      }
+  
+    }
+    else
+    {
+      return { message: 'You are a Unauthorized User' };
+  
+    }
+  }
+
+  @Get("viewiDistributorlistReg")
+  @UsePipes(new ValidationPipe())
+  @UseGuards(SessionGuardDis)
+  async viewDistributorListReg(@Session() session): Promise<ProfileEntity[] | { message: string }>{
+    const user = session.user;
+    
+    if(user.role==="Distributor")
+    {
+      try {
+        
+        const products = await this.profileservice.ViewallDistributornameRegDis(session);
+        console.log(products)
+        if(products){
+          
+          return products;
+        }
+        else{
+          return { message: 'No product in inventory'};
+        }
+      }
+      catch(error)
+      {
+        if (error instanceof productNotaAddedExist){
+          return { message: 'No product added' };
+        }
+      }
+  
+    }
+    else
+    {
+      return { message: 'You are a Unauthorized User' };
+  
+    }
+  }
+
+  @Get("viewiAdminlist")
+  @UsePipes(new ValidationPipe())
+  @UseGuards(SessionGuardDis)
+  async viewAdminList(@Session() session): Promise<ProfileEntity[] | { message: string }>{
+    const user = session.user;
+    
+    if(user.role==="Distributor")
+    {
+      try {
+        
+        const products = await this.profileservice.ViewallAdminNameDis();
+        console.log(products)
+        if(products){
+          
+          return products;
+        }
+        else{
+          return { message: 'No product in inventory'};
+        }
+      }
+      catch(error)
+      {
+        if (error instanceof productNotaAddedExist){
+          return { message: 'No product added' };
+        }
+      }
+  
+    }
+    else
+    {
+      return { message: 'You are a Unauthorized User' };
+  
+    }
+  }
+
+  @Get("viewiAdminlistReg")
+  @UsePipes(new ValidationPipe())
+  @UseGuards(SessionGuardDis)
+  async viewAdminListReg(@Session() session): Promise<ProfileEntity[] | { message: string }>{
+    const user = session.user;
+    
+    if(user.role==="Distributor")
+    {
+      try {
+        
+        const products = await this.profileservice.ViewallAdminnameRegDis(session);
         console.log(products)
         if(products){
           
@@ -615,20 +782,19 @@ async reportAdmin(@Body((new ValidationPipe()))notice:ReportandNoticePostDisDTO,
       return profile;
     }
   } catch (error) {
-    console.error(error);
-
-    if (error) {
-      return { success: false, message: "An unexpected error occurred." };
-    }
+    throw error;
   }
 }
 
 @Delete("deletestockproduct")
 @UsePipes(new ValidationPipe())
 @UseGuards(SessionGuardDis)
-async deleteStockProduct(@Body() product: DeleteProduct, @Session() session): Promise<DisProductEntity | { message: string }|DeleteResult>{
+async deleteStockProduct(@Query('product_name') producte: string, @Session() session): Promise<DisProductEntity | { message: string }|DeleteResult>{
   const user = session.user;
-  
+  const product ={
+    product_name:producte
+  }
+  console.log(product);
   if(user.role==="Distributor")
   {
     try {
@@ -690,6 +856,77 @@ async logout(@Session() session) {
     }
  
   }
+
+  @Get('redlistedindustry')
+  @UseGuards(SessionGuardDis)
+  async RedlisteddistributorIND(@Session() session): Promise<RedListEntity[]| { message: string }> { 
+    const user = session.user;
+    if(user.role=="Distributor")
+    {
+      try {
+        const redlistEntity = await this.redlistservice.redlisteindustryIND();
+        if(redlistEntity.length !== 0)
+        {
+          return redlistEntity;
+        }
+      }
+      catch(error)
+      {
+        if (error instanceof NotanyRedlistedDributor){
+          return { message: 'There is not any RedListed Ditributor.' };
+        }
+      }
+  
+    }
+    //else
+    {
+      return { message: 'You are a Unauthorized User' };
+  
+    }
+  } 
+
+  @Get("deliveredquantity")
+  @UsePipes(new ValidationPipe())
+  @UseGuards(SessionGuardDis)
+  async deliveredQuantity(@Session() session): Promise<DelquantityEntity[] | { message: string }>{
+    const user = session.user;
+    
+    if(user.role==="Distributor")
+    {
+      try {
+        
+        //const products = await this.distributorservice.showDistributorProducts(session.user.name)
+        const products = await this.delquantityservice.DeliveredQuantityDis(user);
+        console.log(products)
+        if(products){
+          
+          return products;
+        }
+        else{
+          return { message: 'No product in inventory'};
+        }
+      }
+      catch(error)
+      {
+        if (error instanceof productNotaAddedExist){
+          return { message: 'No product added' };
+        }
+      }
+  
+    }
+   // else
+    {
+      return { message: 'You are a Unauthorized User' };
+  
+    }
+  }
+  
+
+
+
+  
+
+ 
 
 
 

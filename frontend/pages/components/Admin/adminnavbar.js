@@ -1,20 +1,19 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/pages/utils/Distributor/authcontext";
+import { useAuth } from "@/pages/utils/authcontext";
 import axios from "axios";
-import { useEffect } from "react";
 export default function DisNavbar() {
   const router = useRouter();
   const [isVerified, setisVerified] = useState(false);
   const { logout, user, homego } = useAuth();
-  console.log(user);
+
   const fetchPro = async () => {
     if (user == null) {
       homego();
     }
     try {
       const res = await axios.get(
-        process.env.NEXT_PUBLIC_API_End + "distributor/checkDisVerification/",
+        process.env.NEXT_PUBLIC_API_End + "admin/checkAdminVerification/",
         {
           withCredentials: true,
         }
@@ -45,10 +44,7 @@ export default function DisNavbar() {
     }
   };
 
-  useEffect(() => {
-    fetchPro();
-    // Run the fetchPro function when the component mounts
-  }, []);
+  fetchPro();
 
   const home = () => {
     // Add your sign-in logic here

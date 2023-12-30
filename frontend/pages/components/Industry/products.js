@@ -3,7 +3,6 @@ import axios from "axios";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import EditProduct from "./editProduct";
 import AddProduct from "./addProduct";
 
 export default function Products() {
@@ -31,7 +30,7 @@ export default function Products() {
   const fetchPro = async () => {
     try {
       const res = await axios.get(
-        process.env.NEXT_PUBLIC_API_End + "distributor/viewinventory/",
+        process.env.NEXT_PUBLIC_API_End + "industry/viewallindustryproduct/",
         { withCredentials: true }
       );
 
@@ -126,7 +125,6 @@ export default function Products() {
                 <tbody>
                   {/* row 1 */}
                   {isProfile &&
-                    products &&
                     products.map(
                       (content, index) =>
                         (!issearch ||
@@ -144,24 +142,24 @@ export default function Products() {
                                     {content.product_name}
                                   </div>
                                   <div className="text-sm opacity-50">
-                                    {content.distributor_name}
+                                    {content.industry_name}
                                   </div>
                                 </div>
                               </div>
                             </td>
                             <td>
-                              {content.distributor_price}
+                              {content.industry_price}
                               <br />
                             </td>
                             <td>{content.product_quantity}</td>
-                            <th>
+                            {/* <th>
                               <button
                                 className="btn btn-ghost btn-xs"
                                 onClick={() => see(content)}
                               >
                                 Update
                               </button>
-                            </th>
+                            </th> */}
                           </tr>
                         )
                     )}
@@ -170,11 +168,11 @@ export default function Products() {
               </table>
             </div>
           )}
-          {selectedProduct && (
+          {/* {selectedProduct && (
             <div className="flex-grow bg-base-500 flex items-center justify-center mt-4 mb-4">
               <EditProduct product={selectedProduct}></EditProduct>
             </div>
-          )}
+          )} */}
           {isadd && (
             <div className="flex-grow bg-base-500 flex items-center justify-center mt-4 mb-4">
               <AddProduct></AddProduct>

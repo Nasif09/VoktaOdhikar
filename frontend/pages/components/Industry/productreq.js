@@ -2,16 +2,19 @@ import React from "react";
 import axios from "axios";
 import { useState } from "react";
 import { useEffect } from "react";
+import { useAuth } from "./useauth";
 import { useForm } from "react-hook-form";
-import EditProduct from "./editProduct";
-import AddProduct from "./addProduct";
+import EditProReq from "./editproreq";
 
-export default function Products() {
-  const headerColumns = ["", "Product", "Price", "Quantity Stored"];
-  const [products, setProducts] = useState({});
-  const [isProfile, setIsProfile] = useState(false);
+export default function ProductReq() {
+  const headerColumns = ["", "Product", "Requested By","Requested Quantity","Delivered Quantity"];
+  const [req, setReq] = useState({});
+  const [isReq, setIsReq] = useState(false);
   const [Sdata, setSdata] = useState("");
   const [issearch, setissearch] = useState(false);
+  const { user } = useAuth();
+
+
 
   const onSubmit = (data) => {
     console.log("Form submitted", data);
@@ -28,11 +31,15 @@ export default function Products() {
   });
   const { register, handleSubmit, formState, reset, setValue } = form;
   const { errors } = formState;
+
   const fetchPro = async () => {
     try {
-      const res = await axios.get(
-        process.env.NEXT_PUBLIC_API_End + "distributor/viewinventory/",
-        { withCredentials: true }
+      var res = await axios.get(
+        process.env.NEXT_PUBLIC_API_End + "industry/viewreqbydistributor/",
+        {
+      //    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          withCredentials: true,
+        }
       );
 
       console.log(res);
@@ -44,9 +51,9 @@ export default function Products() {
         // For example:
         // localStorage.setItem("token", res.data.token);
         console.log(res.data);
-        setProducts(res.data);
-        console.log(products);
-        setIsProfile(true);
+        setReq(res.data);
+        console.log(req);
+        setIsReq(true);
       }
     } catch (error) {
       console.log(
@@ -54,14 +61,11 @@ export default function Products() {
           ? error.response.data.message
           : error.message
       );
-      //alert("Wrong Email or Password");
-      // Handle other errors (e.g., network issues, server errors)
-      // You can show an error message, handle it in some way, etc.
-    }
   };
+}
   useEffect(() => {
-    fetchPro();
     // Run the fetchPro function when the component mounts
+    fetchPro();
   }, []);
 
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -77,6 +81,7 @@ export default function Products() {
   const addPro = () => {
     setisadd(true);
   };
+  
   return (
     <>
       <div>
@@ -113,21 +118,20 @@ export default function Products() {
                         {column}
                       </th>
                     ))}
-                    <th>
+                    {/* <th>
                       <button
                         className="btn btn-ghost "
                         onClick={() => addPro()}
                       >
                         Add Product
                       </button>
-                    </th>
+                    </th> */}
                   </tr>
                 </thead>
                 <tbody>
                   {/* row 1 */}
-                  {isProfile &&
-                    products &&
-                    products.map(
+                  {isReq &&
+                    req.map(
                       (content, index) =>
                         (!issearch ||
                           (typeof Sdata === "string" &&
@@ -137,23 +141,24 @@ export default function Products() {
                           !Sdata) && (
                           <tr>
                             <th>{index + 1}</th>
-                            <td>
+                            {/* <td>
                               <div className="flex items-center gap-3">
-                                <div>
-                                  <div className="font-bold">
-                                    {content.product_name}
-                                  </div>
                                   <div className="text-sm opacity-50">
-                                    {content.distributor_name}
+                                    {content.industry_name}
                                   </div>
-                                </div>
                               </div>
-                            </td>
+                            </td> */}
+                          
                             <td>
-                              {content.distributor_price}
+                              {content.product_name}
                               <br />
                             </td>
-                            <td>{content.product_quantity}</td>
+                            <td>
+                              {content.distributor_name}
+                              <br />
+                            </td>
+                            <td>{content.requested_quantity}</td>
+                            <td>{content.delivered_quantity}</td>
                             <th>
                               <button
                                 className="btn btn-ghost btn-xs"
@@ -172,14 +177,14 @@ export default function Products() {
           )}
           {selectedProduct && (
             <div className="flex-grow bg-base-500 flex items-center justify-center mt-4 mb-4">
-              <EditProduct product={selectedProduct}></EditProduct>
+              <EditProReq product={selectedProduct}></EditProReq>
             </div>
           )}
-          {isadd && (
+          {/* {isadd && (
             <div className="flex-grow bg-base-500 flex items-center justify-center mt-4 mb-4">
               <AddProduct></AddProduct>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </>

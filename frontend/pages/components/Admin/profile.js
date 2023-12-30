@@ -2,7 +2,7 @@ import React from "react";
 import axios from "axios";
 import { useState } from "react";
 import { useEffect } from "react";
-import { useAuth } from "@/pages/utils/Distributor/authcontext";
+import { useAuth } from "@/pages/utils/authcontext";
 import EditProfile from "./editProfile";
 
 export default function Profile(props) {
@@ -20,7 +20,7 @@ export default function Profile(props) {
     console.log(userData);
     try {
       const res = await axios.post(
-        process.env.NEXT_PUBLIC_API_End + "distributor/login/",
+        process.env.NEXT_PUBLIC_API_End + "admin/login/",
         userData,
         {
           headers: { "Content-Type": "application/x-www-form-urlencoded" },

@@ -3,14 +3,17 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
-import { useAuth } from "@/pages/utils/Distributor/authcontext";
+import { useAuth } from "@/pages/utils/authcontext";
 
-export default function Login() {
+export default function RemoveDistributorFromRedList(props) {
+  console.log(props.Distributor);
   const router = useRouter();
   const form = useForm({
     defaultValues: {
-      Email: "asdas@gmail.com",
-      Password: "Sajid@259#",
+        name: props.Distributor.name,
+      reason: props.Distributor.reason,
+      issuer: props.Distributor.issuer,
+      redlistedserialnumber:props.Distributor.redlistedserialnumber,
     },
 
     mode: "all",
@@ -18,45 +21,30 @@ export default function Login() {
   const { register, handleSubmit, formState, reset, setValue } = form;
   const { errors } = formState;
   const [errch, seterrch] = useState("");
+  const [updated, setupdated] = useState(false);
   const [isErr, setisErr] = useState(false);
+
   const { login } = useAuth();
   const onSubmit = async (data) => {
-    console.log("Form submitted", data);
-    const userData = {
-      email: data.Email,
-      password: data.Password,
-    };
+    const { redlistedserialnumber } = form.getValues();
+    // const reason = {
+    //     redlistedserialnumber: redlistedserialnumber,
+    // };
+
+    //console.log(reason);
 
     try {
-      const res = await axios.post(
-        process.env.NEXT_PUBLIC_API_End + "distributor/login/",
-        userData,
+      const res = await axios.delete(
+        process.env.NEXT_PUBLIC_API_End +
+        `admin/redlistdistributor?serialnumber=${props.Distributor.redlistedserialnumber}`,
+
         {
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
           withCredentials: true,
         }
       );
-
       console.log(res);
-
-      // Check if the response status is successful (e.g., HTTP status code 200)
       if (res.status >= 200 && res.status < 300) {
-        // You may want to store the authentication token or user information
-        // in the state or context
-        // For example:
-        // localStorage.setItem("token", res.data.token);
-
-        // Redirect the user to the appropriate page
-        console.log("cookie: " + document.cookie);
-        login(
-          res.data.name,
-          userData.password,
-          userData.email,
-          document.cookie
-        );
-        router.push({
-          pathname: "../Distributor/" + res.data.uid,
-        }); // Replace "/dashboard" with the actual URL
+        // Replace "/dashboard" with the actual URL
       }
     } catch (error) {
       console.log(error);
@@ -71,91 +59,115 @@ export default function Login() {
       );
       setisErr(true);
       console.log(errch);
-      reset();
-      // Handle other errors (e.g., network issues, server errors)
-      // You can show an error message, handle it in some way, etc.
+      
     }
+
+
+    if (isErr === false) setupdated(true);
   };
   return (
     <>
       <div className="">
-        <h2 className="text-xl font-semibold mb-6 text-center text-slate-900">
-          Login
-        </h2>
         <div>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div>
               <label className="form-control w-full max-w-xs">
                 <div className="label">
-                  <span className="label-text text-lg text-slate-900">
-                    Email
-                  </span>
+                  <span className="label-text text-lg">Name</span>
                 </div>
                 <input
                   className={`input input-bordered w-full max-w-xs bg-inherit input-sm ${
-                    errors.Email?.message ? "input-warning" : ""
+                    errors.name?.message ? "input-warning" : ""
                   }`}
                   placeholder="Type here"
                   type="text"
-                  id="Email"
-                  {...register("Email", {
+                  id="name"
+                  {...register("name", {
                     validate: {
                       notEmpty: (fd) => {
                         return fd !== "" || "Field Cannot Be empty";
                       },
-                      notDefault: (fd) => {
-                        return (
-                          fd !== "john@email.com" ||
-                          "Default email cannot be used"
-                        );
-                      },
-                      emailPattarn: (fd) => {
-                        return (
-                          /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/.test(fd) ||
-                          "Invalid email"
-                        );
-                      },
                     },
                   })}
+                  readOnly
                 />
                 <div className="label">
                   <span className="label-text-alt">
-                    {errors.Email?.message}
+                    {errors.name?.message || (isErr && errch)}
                   </span>
                 </div>
               </label>
             </div>
+
+
+
             <div>
               <label className="form-control w-full max-w-xs">
                 <div className="label">
-                  <span className="label-text text-lg text-slate-900">
-                    Password
-                  </span>
+                  <span className="label-text text-lg">Reason</span>
                 </div>
                 <input
                   className={`input input-bordered w-full max-w-xs bg-inherit input-sm ${
-                    errors.Password?.message ? "input-warning" : ""
+                    errors.reason?.message ? "input-warning" : ""
                   }`}
                   placeholder="Type here"
-                  type="password"
-                  id="Password"
-                  {...register("Password", {
+                  type="text"
+                  id="reason"
+                  {...register("reason", {
                     validate: {
                       notEmpty: (fd) => {
                         return fd !== "" || "Field Cannot Be empty";
                       },
                     },
                   })}
+                  readOnly
                 />
                 <div className="label">
                   <span className="label-text-alt">
-                    {errors.Password?.message || (isErr && errch)}
+                    {errors.reason?.message || (isErr && errch)}
+                  </span>
+                </div>
+              </label>
+            </div>            
+
+
+            <div>
+              <label className="form-control w-full max-w-xs">
+                <div className="label">
+                  <span className="label-text text-lg">Issuer</span>
+                </div>
+                <input
+                  className={`input input-bordered w-full max-w-xs bg-inherit input-sm ${
+                    errors.issuer?.message ? "input-warning" : ""
+                  }`}
+                  placeholder="Type here"
+                  type="text"
+                  id="issuer"
+                  {...register("issuer", {
+                    validate: {
+                      notEmpty: (fd) => {
+                        return fd !== "" || "Field Cannot Be empty";
+                      },
+                    },
+                  })}
+                  readOnly
+                />
+                <div className="label">
+                  <span className="label-text-alt">
+                    {errors.issuer?.message || (isErr && errch)}
                   </span>
                 </div>
               </label>
             </div>
+
+
             <div>
-              <button className="btn btn-outline mx-auto w-full">Login</button>
+              <button className="btn btn-outline btn-xs">Remove From RedList</button>
+            </div>
+            <div>
+              {updated && (
+                <a className="text-sm  text-green-600">Distributor Removed From RedList</a>
+              )}
             </div>
           </form>
         </div>
