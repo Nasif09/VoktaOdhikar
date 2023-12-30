@@ -55,14 +55,10 @@ export default function Register() {
           : error.response.data.message
       );
       setisErr(true);
-      //console.log(res);
     }
-
-    //reset();
   };
 
-  console.log({ isDirty });
-
+  //console.log({ isDirty });
   useEffect(() => {
     const subs = watch((val) => {
       console.log(val);
@@ -308,29 +304,6 @@ export default function Register() {
             </div>
             {/* <div>
               <label className="form-control w-full max-w-xs">
-                <div className="label">
-                  <span className="label-text text-lg">License</span>
-                </div>
-                <input
-                  className="file-input file-input-bordered file-input-sm w-full max-w-xs bg-inherit"
-                  type="file"
-                  id="license"
-                  {...register("license", {
-                    required: "Select a file",
-                    validate: {
-                      validFileFormat: (fd) => {
-                        return (
-                          fd[0].type === "application/pdf" || "File must be pdf"
-                        );
-                      },
-                    },
-                  })}
-                />
-                <div className="label">
-                  <span className="label-text-alt">
-                    {errors.license?.message}
-                  </span>
-                </div>
               </label>
             </div> */}
             <div>

@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
 import { useAuth } from "@/pages/utils/authcontext";
@@ -12,21 +11,21 @@ export default function EditProfile(props) {
     defaultValues: {
       Name: Profile.name,
       Email: Profile.email,
-      Password: Profile.password,
+      Password: "",
       region: Profile.region,
       phone: Profile.phone_number,
       LicenseNum: Profile.license_number,
     },
-
     mode: "all",
   });
-  const { register, handleSubmit, formState, reset, setValue } = form;
+  const { register, handleSubmit, formState, setValue } = form;
   const { errors } = formState;
   const [errch, seterrch] = useState("");
-  const [updated, setupdated] = useState(false);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
   const [isErr, setisErr] = useState(false);
 
   const { login } = useAuth();
+
   const onSubmit = async (data) => {
     const userData = {
       name: data.Name,
@@ -40,30 +39,34 @@ export default function EditProfile(props) {
     };
 
     try {
-      const res = await axios.patch(
+      const res = await axios.put(
         process.env.NEXT_PUBLIC_API_End + "user/updateuserprofile",
         userData,
         {
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
           withCredentials: true,
         }
       );
+
       console.log(res);
+
       const ress = await axios.patch(
-        process.env.NEXT_PUBLIC_API_End + "user/updateregion",
+        process.env.NEXT_PUBLIC_API_End + "user/updateuserregion",
         regiondata,
         {
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
           withCredentials: true,
         }
       );
       console.log(ress);
+
       if (res.status >= 200 && res.status < 300) {
-        // Replace "/dashboard" with the actual URL
+        setUpdateSuccess(true);
       }
     } catch (error) {
       console.log(error);
-      //alert("Wrong Email or Password");
 
       seterrch(
         error.hasOwnProperty("response")
@@ -74,8 +77,6 @@ export default function EditProfile(props) {
       );
       setisErr(true);
       console.log(errch);
-      // Handle other errors (e.g., network issues, server errors)
-      // You can show an error message, handle it in some way, etc.
     }
   };
 
@@ -182,25 +183,6 @@ export default function EditProfile(props) {
               </label>
             </div>
             {/* <div>
-              <label className="form-control w-full max-w-xs">
-                <div className="label">
-                  <span className="label-text text-lg">License</span>
-                </div>
-                <input
-                  className="file-input file-input-bordered file-input-sm w-full max-w-xs bg-inherit"
-                  type="file"
-                  id="license"
-                  {...register("license", {
-                    required: "Select a file",
-                    validate: {
-                      validFileFormat: (fd) => {
-                        return (
-                          fd[0].type === "application/pdf" || "File must be pdf"
-                        );
-                      },
-                    },
-                  })}
-                />
                 <div className="label">
                   <span className="label-text-alt">
                     {errors.license?.message}
@@ -212,7 +194,7 @@ export default function EditProfile(props) {
               <label className="form-control w-full max-w-xs">
                 <div className="label">
                   <span className="label-text text-lg text-slate-900">
-                    Password
+                    New Password
                   </span>
                 </div>
                 <input
@@ -267,12 +249,18 @@ export default function EditProfile(props) {
                 </div>
               </label>
             </div>
+
             <div>
               {
-                <button className="btn btn-outline mx-auto w-full">
-                  Update
-                </button>
+                updateSuccess ? (
+                  <div className="text-green-600 font-bold mb-4">
+                    Profile updated successfully!
+                  </div>
+                ) : null
               }
+              <button className="btn btn-outline mx-auto w-full">
+                Update
+              </button>
             </div>
           </form>
         </div>

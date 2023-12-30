@@ -1,36 +1,102 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React from "react";
 import { useForm } from "react-hook-form";
+import { useState } from "react";
 import { useRouter } from "next/router";
+import axios from "axios";
+import { useAuth } from "@/pages/utils/authcontext";
+import { useEffect } from "react";
 
-export default function Report() {
+export default function ReportAdmin() {
   const router = useRouter();
-  const { register, handleSubmit, formState } = useForm();
-  const { errors } = formState;
+  const form = useForm({
+    defaultValues: {
+      receiver: "",
+      reportornotice: "",
+      type: "",
+    },
 
+    mode: "all",
+  });
+  const { register, handleSubmit, formState, reset, setValue } = form;
+  const { errors } = formState;
+  const [errch, seterrch] = useState("");
+  const [updated, setupdated] = useState(false);
+  const [isErr, setisErr] = useState(false);
+
+  const { login } = useAuth();
   const onSubmit = async (data) => {
-    console.log("Form submitted", data);
-    const userData = {
-      reportornotice: data.reason,
+    const report = {
       receiver: data.receiver,
+      reportornotice: data.reportornotice,
       type: data.type,
     };
 
     try {
       const res = await axios.post(
-        process.env.NEXT_PUBLIC_API_End + "user/reportadmin/",
-        userData,
+        process.env.NEXT_PUBLIC_API_End + "user/reportadmin",
+        report,
         {
-            //    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                withCredentials: true,
-              }
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          withCredentials: true,
+        }
+      );
+      console.log(res);
+      if (res.status >= 200 && res.status < 300) {
+        setupdated(true);
+        reset();
+      }
+    } catch (error) {
+      console.log(error);
+
+      seterrch(
+        error.hasOwnProperty("response")
+          ? Array.isArray(error.response.data.message)
+            ? error.response.data.message[0]
+            : error.response.data.message
+          : error.message
+      );
+      setisErr(true);
+      console.log(errch);
+    }
+  };
+
+  const [redlisted, setredlisted] = useState({});
+  const [redlistedR, setredlistedR] = useState({});
+  const [isProfile, setIsProfile] = useState(false);
+  const [isProfiler, setIsProfiler] = useState(false);
+  const fetchPro = async () => {
+    try {
+      const res = await axios.get(
+        process.env.NEXT_PUBLIC_API_End + "user/viewiAdminlist/",
+        { withCredentials: true }
       );
 
-      if (res.status >= 200 && res.status <= 300) {
+      console.log(res);
+      if (res.status >= 200 && res.status < 300) {
         console.log(res.data);
-        alert("Notice/Report sent successfully!");
-        // Redirect or perform any other actions after successful submission
-        // router.push('');
+        setredlisted(res.data);
+        console.log(redlisted);
+        setIsProfile(true);
+      }
+    } catch (error) {
+      console.log(
+        error.hasOwnProperty("response")
+          ? error.response.data.message
+          : error.message
+      );
+    }
+    try {
+      const res = await axios.get(
+        process.env.NEXT_PUBLIC_API_End + "user/viewiAdminlistReg/",
+        { withCredentials: true }
+      );
+
+      console.log(res);
+      if (res.status >= 200 && res.status < 300) {
+        console.log(res.data);
+        setredlistedR(res.data);
+        console.log(redlisted);
+        setIsProfiler(true);
       }
     } catch (error) {
       console.log(
@@ -40,67 +106,141 @@ export default function Report() {
       );
     }
   };
+  const [isToggleChecked, setIsToggleChecked] = useState(false);
+  useEffect(() => {
+    fetchPro();
+  }, []);
 
   return (
-    <div>
-            <h2 className="text-xl font-semibold mb-6 text-center text-white">
-        Send Notice or Report
-        </h2>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center">
-        <div className="form-control w-full max-w-md mb-4">
-            <label className="label">
-            <span className="label-text text-lg text-white">Reason</span>
-            </label>
-            <textarea
-            className="textarea textarea-bordered w-full bg-inherit resize-none text-white"
-            placeholder=""
-            {...register("reason", { required: "This field is required" })}
-            />
-            <div className="label">
-            <span className="label-text-alt text-red-600">
-                {errors.reason?.message}
-            </span>
-            </div>
+    <>
+      <div className="flex justify-center items-center h-screen">
+        <div className="flex justify-between">
+          <div>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              {/* <div>
+                <label className="form-control w-full max-w-xs">
+                </label>
+              </div> */}
+              <div>
+                <label className="form-control w-full max-w-xs">
+                  <div className="label">
+                    <span className="label-text text-lg ">
+                      Whom to send report
+                    </span>
+                  </div>
+                  <select
+                    className={`input input-bordered w-full max-w-xs bg-inherit input-sm ${
+                      errors.receiver?.message ? "select-warning" : ""
+                    }`}
+                    name="receiver"
+                    id="receiver"
+                    {...register("receiver", {
+                      validate: {
+                        notEmpty: (fd) => {
+                          return fd !== "Select Reciever" || "Select reciever";
+                        },
+                        notEmpty2: (fd) => {
+                          return fd !== "" || "Select reciever";
+                        },
+                      },
+                    })}
+                  >
+                    <option disabled selected>
+                      Select Reciever
+                    </option>
+
+                    {!isToggleChecked &&
+                      isProfile &&
+                      redlisted &&
+                      redlisted.map((content, index) => (
+                        <option value={content.name}>{content.name}</option>
+                      ))}
+                  </select>
+                  <div className="label">
+                    <span className="label-text-alt">
+                      {errors.receiver?.message}
+                    </span>
+                  </div>
+                </label>
+              </div>
+              <div>
+                <label className="form-control w-full max-w-xs">
+                  <div className="label">
+                    <span className="label-text text-lg">Reason</span>
+                  </div>
+                  <input
+                    className={`input input-bordered w-full max-w-xs bg-inherit input-lg ${
+                      errors.reportornotice?.message ? "input-warning" : ""
+                    }`}
+                    placeholder="Type here"
+                    type="text"
+                    id="reportornotice"
+                    {...register("reportornotice", {
+                      validate: {
+                        notEmpty: (fd) => {
+                          return fd !== "" || "Field Cannot Be empty";
+                        },
+                      },
+                    })}
+                  />
+                  <div className="label">
+                    <span className="label-text-alt">
+                      {errors.reportornotice?.message}
+                    </span>
+                  </div>
+                </label>
+              </div>
+              <div>
+                <label className="form-control w-full max-w-xs">
+                  <div className="label">
+                    <span className="label-text text-lg ">Report Type</span>
+                  </div>
+                  <select
+                    className={`input input-bordered w-full max-w-xs bg-inherit input-sm ${
+                      errors.type?.message ? "select-warning" : ""
+                    }`}
+                    name="type"
+                    id="type"
+                    {...register("type", {
+                      validate: {
+                        notEmpty: (fd) => {
+                          return (
+                            fd !== "Select Your type" || "Select a report type"
+                          );
+                        },
+                        notEmpty2: (fd) => {
+                          return fd !== "" || "Select a type";
+                        },
+                      },
+                    })}
+                  >
+                    <option disabled selected>
+                      Select Your type
+                    </option>
+                    <option value="Report">Report</option>
+                    <option value="Notice">Notice</option>
+                  </select>
+                  <div className="label">
+                    <span className="label-text-alt">
+                      {errors.type?.message}
+                    </span>
+                  </div>
+                </label>
+              </div>
+              <div>
+                <button className="btn btn-outline mx-auto w-full">
+                  Send Report
+                </button>
+              </div>
+              <div>
+                {updated && (
+                  <a className="text-sm  text-green-600">Report Send</a>
+                )}
+              </div>
+            </form>
+          </div>
         </div>
-        <div className="form-control w-full max-w-md mb-4">
-            <label className="label">
-            <span className="label-text text-lg text-white">Receiver</span>
-            </label>
-            <input
-            className="input input-bordered w-full bg-inherit text-white"
-            type="text"
-            placeholder=""
-            {...register("receiver", {
-                required: "This field is required",
-            })}
-            />
-            <div className="label">
-            <span className="label-text-alt text-red-600">
-                {errors.receiver?.message}
-            </span>
-            </div>
-        </div>
-        <div className="form-control w-full max-w-md mb-4">
-            <label className="label">
-            <span className="label-text text-lg text-white">Type</span>
-            </label>
-            <select
-            className="select select-bordered w-full bg-inherit text-white"
-            {...register("type", { required: "This field is required" })}
-            >
-            <option value="Notice">Notice</option>
-            <option value="Report">Report</option>
-            </select>
-            <div className="label">
-            <span className="label-text-alt text-red-600">
-                {errors.type?.message}
-            </span>
-            </div>
-        </div>
-        <div className="mb-4">
-            <button className="btn btn-outline w-full">Send</button>
-        </div>
-        </form>
-    </div>
+      </div>
+    </>
   );
 }

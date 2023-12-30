@@ -17,27 +17,18 @@ export default function ShowDis() {
       );
 
       console.log(res);
-
-      //Check if the response status is successful (e.g., HTTP status code 200)
       if (res.status >= 200 && res.status < 300) {
-        // You may want to store the authentication token or user information
-        // in the state or context
-        // For example:
-        // localStorage.setItem("token", res.data.token);
         console.log(res.data);
         setredlisted(res.data);
         console.log(redlisted);
         setIsProfile(true);
       }
     } catch (error) {
-      //console.log(error);
       console.log(
         error.hasOwnProperty("response")
           ? error.response.data.message
           : error.message
       );
-      // Handle other errors (e.g., network issues, server errors)
-      // You can show an error message, handle it in some way, etc.
     }
     try {
       const res = await axios.get(
@@ -47,33 +38,23 @@ export default function ShowDis() {
       );
 
       console.log(res);
-
-      //Check if the response status is successful (e.g., HTTP status code 200)
       if (res.status >= 200 && res.status < 300) {
-        // You may want to store the authentication token or user information
-        // in the state or context
-        // For example:
-        // localStorage.setItem("token", res.data.token);
         console.log(res.data);
         setredlistedR(res.data);
-        console.log(redlisted);
+        console.log(redlistedR);
         setIsProfiler(true);
       }
     } catch (error) {
-      //console.log(error);
       console.log(
         error.hasOwnProperty("response")
           ? error.response.data.message
           : error.message
       );
-      // Handle other errors (e.g., network issues, server errors)
-      // You can show an error message, handle it in some way, etc.
     }
   };
   const [isToggleChecked, setIsToggleChecked] = useState(false);
   useEffect(() => {
     fetchPro();
-    // Run the fetchPro function when the component mounts
   }, []);
   return (
     <>
@@ -107,6 +88,7 @@ export default function ShowDis() {
               {/* row 1 */}
               {!isToggleChecked &&
                 isProfile &&
+                redlisted &&
                 redlisted.map((content, index) => (
                   <tr>
                     <th>{index + 1}</th>
@@ -129,6 +111,7 @@ export default function ShowDis() {
               {/*region*/}
               {isToggleChecked &&
                 isProfiler &&
+                redlistedR &&
                 redlistedR.map((content, index) => (
                   <tr>
                     <th>{index + 1}</th>

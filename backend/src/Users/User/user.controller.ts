@@ -3,7 +3,7 @@ import { ProfileService } from '../../Models/All Profile/profile.service';
 import { VerificationService } from '../../Models/Verification/verification.service';
 import { RedListService } from '../../Models/Red Lists/redlist.service';
 import { ReportandNoticeService } from '../../Models/Report and Notice/reportandnotice.service';
-import { Login, UpdateAdminDTO, UpdateIndsutryPhoneDTO, UpdateIndustryDTO, UpdateNameDTO, UpdatePhoneDTO, UpdateRegionDisDTO, UpdateUserDTO, UpdateUserPhoneDTO, UpdatepasswordDTO } from "../../Models/All Profile/profile.dto";
+import { Login, UpdateAdminDTO, UpdateIndsutryPhoneDTO, UpdateIndustryDTO, UpdateNameDTO, UpdatePhoneDTO, UpdateRegionDisDTO, UpdateRegionUserDTO, UpdateUserDTO, UpdateUserPhoneDTO, UpdatepasswordDTO } from "../../Models/All Profile/profile.dto";
 import { ProfileDTO} from '../../Models/All Profile/profile.dto';
 import { Request } from 'express';
 import { ReportandNoticeDTO, ReportandNoticeDisDTO, ReportandNoticePostDisDTO, ReportandNoticePostUserDTO, ReportandNoticeUserDTO} from '../../Models/Report and Notice/reportandnotice.dto';
@@ -107,7 +107,7 @@ async login(@Body() data: Login, @Session() session): Promise<ProfileEntity | { 
 //   }
 // }
 
-@Post('logout')
+@Get('logout')
 @UseGuards(SessionGuard)
 async logout(@Session() session) {
   if (session.user) {
@@ -248,30 +248,58 @@ async deleteUserProfile(@Session() session): Promise<{ message: string } | { suc
     }
   }
 
-  @Put('updateuserprofile')
+
+
+  @Put('/updateuserprofile')
   @UseGuards(SessionGuard)
-  async updateuserprofileU(@Body((new ValidationPipe()))ProfileInfo:UpdateUserDTO, @Session() session): Promise<ProfileEntity | { message: string } | { success: boolean }>{
-    const user = session.user;
-    try {
-      if (!session) {
-        throw new UnauthorizedException("User is not authorized");
-      } else {
-        const user = session.user;
-        const id = user.uid;
-        const updateuserinfo = await this.profileservice.updateUserInfoU(ProfileInfo, id);
-        return updateuserinfo;
-      }
-    } catch (error) {
-      console.error(error);
-  
-      if (error instanceof ProfiledoesnotExistsError) {
-        return { success: false, message: error.message };
-      } else {
-        return { success: false, message: "An unexpected error occurred." };
-      }
+  async updatedisprofile(@Body((new ValidationPipe()))ProfileInfo:UpdateUserDTO, @Session() session): Promise<ProfileEntity | { message: string } | { success: boolean }>{
+  const user = session.user;
+  try {
+    if (user.role!=="User") {
+      throw new UnauthorizedException("User is not authorized");
+    } else {
+      const user = session.user;
+      const id = user.uid;
+      const updateadmininfo = await this.profileservice.updateUserInfo(ProfileInfo, id);
+      return updateadmininfo;
     }
-  
+  } catch (error) {
+    console.error(error);
+
+    if (error instanceof ProfiledoesnotExistsError) {
+      return { success: false, message: error.message };
+    } else {
+      return { success: false, message: "An unexpected error occurred." };
+    }
   }
+
+}
+
+
+  // @Patch('updateuserprofile')
+  // @UseGuards(SessionGuard)
+  // async updateuserprofileU(@Body((new ValidationPipe()))ProfileInfo:UpdateUserDTO, @Session() session): Promise<ProfileEntity | { message: string } | { success: boolean }>{
+  //   const user = session.user;
+  //   try {
+  //     if (!session) {
+  //       throw new UnauthorizedException("User is not authorized");
+  //     } else {
+  //       const user = session.user;
+  //       const id = user.uid;
+  //       const updateuserinfo = await this.profileservice.updateUserInfoU(ProfileInfo, id);
+  //       return updateuserinfo;
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  
+  //     if (error instanceof ProfiledoesnotExistsError) {
+  //       return { success: false, message: error.message };
+  //     } else {
+  //       return { success: false, message: "An unexpected error occurred." };
+  //     }
+  //   }
+  
+  // }
 
 
   @Post('reportadmin')
@@ -289,7 +317,7 @@ async deleteUserProfile(@Session() session): Promise<{ message: string } | { suc
           reportornotice:notice.reportornotice,
           type:notice.type
         }
-        const profile = await this.reportandnoticeservice.noticeandreportUser(sendnotice,session.user.uid)
+        const profile = await this.reportandnoticeservice.noticeandreportU(sendnotice,session.user.uid)
         return profile;
       }
     } catch (error) {
@@ -418,9 +446,9 @@ async deleteUserProfile(@Session() session): Promise<{ message: string } | { suc
     }
   }
   
-  @Patch('updateregion')
+@Patch('/updateuserregion')
   @UseGuards(SessionGuard)
-  async updateDisRegion(@Body((new ValidationPipe()))region:UpdateRegionDisDTO, @Session() session): Promise<ProfileEntity | { message: string } | { success: boolean }>{
+  async updateDisRegion(@Body((new ValidationPipe()))region:UpdateRegionUserDTO, @Session() session): Promise<ProfileEntity | { message: string } | { success: boolean }>{
     const user = session.user;
 
   try {
@@ -505,5 +533,86 @@ async deleteUserProfile(@Session() session): Promise<{ message: string } | { suc
       return { message: 'You are an unauthorized user' };
     }
   }
+  @Get("viewiAdminlist")
+  @UsePipes(new ValidationPipe())
+  @UseGuards(SessionGuard)
+  async viewAdminList(@Session() session): Promise<ProfileEntity[] | { message: string }>{
+    const user = session.user;
+    
+    if(user.role==="User")
+    {
+      try {
+        
+        const products = await this.profileservice.ViewallAdminNameU();
+        console.log(products)
+        if(products){
+          
+          return products;
+        }
+        else{
+          return { message: 'No product in inventory'};
+        }
+      }
+      catch(error)
+      {
+        if (error instanceof productNotaAddedExist){
+          return { message: 'No product added' };
+        }
+      }
+  
+    }
+    else
+    {
+      return { message: 'You are a Unauthorized User' };
+  
+    }
+  }
+
+  @Get("viewiAdminlistReg")
+  @UsePipes(new ValidationPipe())
+  @UseGuards(SessionGuard)
+  async viewAdminListReg(@Session() session): Promise<ProfileEntity[] | { message: string }>{
+    const user = session.user;
+    
+    if(user.role==="User")
+    {
+      try {
+        
+        const products = await this.profileservice.ViewallAdminnameRegU(session);
+        console.log(products)
+        if(products){
+          
+          return products;
+        }
+        else{
+          return { message: 'No product in inventory'};
+        }
+      }
+      catch(error)
+      {
+        if (error instanceof productNotaAddedExist){
+          return { message: 'No product added' };
+        }
+      }
+  
+    }
+    else
+    {
+      return { message: 'You are a Unauthorized User' };
+  
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
 }
 

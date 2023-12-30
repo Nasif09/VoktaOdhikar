@@ -3,9 +3,6 @@ import Link from "next/link";
 import Header from "../components/Distributor/header";
 import NumberAnalyzer from "../components/numbergames";
 import { useState } from "react";
-import ListInfo from "../components/Distributor/listInfo";
-import AlertDis from "../components/Distributor/alert";
-import MyCardDis from "../components/Distributor/cardDis";
 import Sidebar from "../components/User/sidebar";
 import Footer from "../components/footer";
 import { useRouter } from "next/router";
@@ -18,7 +15,8 @@ export default function User() {
     "Distributor",
     "Redlisted Distributor",
     "Report",
-    "profile"
+    "profile",
+    "Distributor Products"
   ];
   const [alertVisible, setAlertVisible] = useState(true);
   const router = useRouter();

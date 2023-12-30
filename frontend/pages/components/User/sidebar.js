@@ -5,8 +5,6 @@ import ShowInd from "./allIndustry";
 import ShowDis from "./allDistributor";
 import Products from "./products";
 import Report from "./report";
-import { useEffect } from "react";
-import axios from "axios";
 import RedlistedInd from "./redlisted";
 import RedlistedDis from "./redlistedDis";
 import { useAuth } from "@/pages/utils/authcontext";
@@ -14,51 +12,17 @@ import { useRouter } from "next/router";
 
 export default function Sidebar(props) {
   const [selectedIndex, setIndex] = useState(-1);
-  const [isProfile, setisProfile] = useState(false);
-  const [Profiles, setProfile] = useState();
   const { user } = useAuth();
   const router = useRouter();
   const fetchPro = async () => {
     if (user == null) {
       router.push("../signin");
     }
-    // try {
-    //   const res = await axios.post(
-    //     process.env.NEXT_PUBLIC_API_End + "distributor/login/",
-    //     userData
-    //   );
-
-    //   console.log(res);
-
-    //   //Check if the response status is successful (e.g., HTTP status code 200)
-    //   if (res.status >= 200 && res.status < 300) {
-    //     // You may want to store the authentication token or user information
-    //     // in the state or context
-    //     // For example:
-    //     // localStorage.setItem("token", res.data.token);
-    //     console.log(res);
-    //     setisProfile(true);
-    //     setProfile(res.data);
-    //     console.log(Profiles);
-    //     // Redirect the user to the appropriate page
-    //   }
-    // } catch (error) {
-    //   console.log(error);
-
-    //   // Handle other errors (e.g., network issues, server errors)
-    //   // You can show an error message, handle it in some way, etc.
-    // }
   };
-  // useEffect(() => {
-  //   fetchPro();
-  //   // Run the fetchPro function when the component mounts
-  // }, []);
 
-  console.log(props);
   const listselect = (fd, idx) => {
     if (selectedIndex === idx) setIndex(-1);
     else setIndex(idx);
-    console.log(fd);
   };
   return (
     <>
@@ -86,9 +50,6 @@ export default function Sidebar(props) {
             {/* Sidebar content here */}
             {/* <li>
               <a>Sidebar Item 1</a>
-            </li>
-            <li>
-              <a>Sidebar Item 2</a>
             </li> */}
             {props.items.map((content, index) => (
               <div>
